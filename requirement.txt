@@ -1,0 +1,2 @@
+https://github.com/aiogram/aiogram/archive/refs/heads/dev-3.x.zip
+magic-filter==1.0.11
