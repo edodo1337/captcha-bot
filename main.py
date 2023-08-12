@@ -147,6 +147,7 @@ async def process_button(
 ):
     logger.info("Process answer button callback")
     state_data = await state.get_data()
+    current_state = await state.get_state()
     correct_answer = state_data.get(CORRECT_ANSWER_KEY)
     captcha_msg_ids = state_data.get(MESSAGE_IDS_LIST_KEY, [])
 
@@ -154,7 +155,8 @@ async def process_button(
         return
 
     if callback_data.chosen_answer != correct_answer:
-        if state == NewMemberState.attempt1:
+        logger.info(f"User state={current_state}")
+        if current_state == NewMemberState.attempt1:
             logger.info(
                 f"Incorrect answer, attempts exceeded, "
                 f"ban user_id={query.from_user.id} "
