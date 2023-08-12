@@ -24,8 +24,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("catpcha_bot")
 
 # -------------Constants------------- #
-# API_TOKEN = os.getenv("TG_API_TOKEN")
-API_TOKEN = "6505512754:AAEjXqbWYSaLJXZMBWCEifmok5HbV7RkHAA"
+API_TOKEN = os.getenv("TG_API_TOKEN")
 ANSWERS_COUNT = int(os.getenv("ANSWERS_COUNT", 3))
 CORRECT_ANSWER_KEY = "correct_answer"
 MESSAGE_IDS_LIST_KEY = "message_id"
