@@ -188,8 +188,16 @@ async def process_button(
                 f"for user_id={query.from_user.id} "
                 f"username={query.from_user.username}"
             )
-            await query.answer(
-                ":warning: Неправильный ответ, у вас еще 1 попытка :warning:"
+            reply_msg = await query.message.answer(
+                "⚠️Неправильный ответ, еще 1 попытка⚠️"
+            )
+            await state.update_data(
+                {
+                    MESSAGE_IDS_LIST_KEY: [
+                        *captcha_msg_ids,
+                        reply_msg.message_id,
+                    ],
+                }
             )
             await state.set_state(NewMemberState.attempt1)
     else:
