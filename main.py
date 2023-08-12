@@ -100,13 +100,13 @@ async def background_ban_countdown(
 
         current_state = await state.get_state()
 
-        if current_state is None or current_state in (
+        if current_state in (
             NewMemberState.approved,
             NewMemberState.default,
         ):
             continue
 
-        if current_state in (
+        if current_state is None or current_state in (
             NewMemberState.approved,
             NewMemberState.kick,
         ):
