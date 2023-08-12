@@ -106,6 +106,12 @@ async def background_ban_countdown(
         ):
             continue
 
+        if current_state in (
+            NewMemberState.approved,
+            NewMemberState.kick,
+        ):
+            return
+
         logger.info(
             f"Answer timeout, ban user_id={user.id} " f"username={user.username}"
         )
@@ -120,7 +126,8 @@ async def background_ban_countdown(
                     message_id=msg_id,
                     chat_id=chat.id,
                 )
-            finally:
+            except Exception as ex:
+                logger.error(ex)
                 pass
 
         return
@@ -181,7 +188,9 @@ async def process_button(
                 f"for user_id={query.from_user.id} "
                 f"username={query.from_user.username}"
             )
-            await query.answer(":warning: Неправильный ответ, у вас еще 1 попытка :warning:")
+            await query.answer(
+                ":warning: Неправильный ответ, у вас еще 1 попытка :warning:"
+            )
             await state.set_state(NewMemberState.attempt1)
     else:
         logger.info(
