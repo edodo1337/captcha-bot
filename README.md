@@ -23,3 +23,8 @@
 
 Запускаем контейнер:
 `$ sudo docker run --env-file .env captcha-bot`
+
+### Переменные окружения
+> ANSWER_TIMEOUT_SEC - (секунды) таймаут на ответ (по умолчанию 30)
+> TG_API_TOKEN - API токен бота из @BotFather
+> ANSWERS_COUNT - количество вариантов ответа (по умолчанию 3)
