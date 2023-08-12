@@ -24,7 +24,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("catpcha_bot")
 
 # -------------Constants------------- #
-API_TOKEN = os.getenv("TG_API_TOKEN")
+# API_TOKEN = os.getenv("TG_API_TOKEN")
+API_TOKEN = "6505512754:AAEjXqbWYSaLJXZMBWCEifmok5HbV7RkHAA"
 ANSWERS_COUNT = int(os.getenv("ANSWERS_COUNT", 3))
 CORRECT_ANSWER_KEY = "correct_answer"
 MESSAGE_IDS_LIST_KEY = "message_id"
@@ -234,7 +235,9 @@ async def on_user_joined(
     )
 
     user_is_admin = await is_admin(event.chat, event.from_user)
-    if not user_is_admin:
+    if user_is_admin:
+        return
+    else:
         logger.info("Restrict new member")
         await bot.restrict_chat_member(
             event.chat.id, event.from_user.id, permissions=permissions
