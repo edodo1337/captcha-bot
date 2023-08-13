@@ -1,3 +1,4 @@
 .env
 .venv
-*.__pyc__
+*.__pyc__*
+*__pycache__*
