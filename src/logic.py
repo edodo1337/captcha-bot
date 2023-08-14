@@ -43,6 +43,7 @@ async def background_ban_countdown(
     logger_extra = {
         "user_id": user.id,
         "username": chat.username,
+        "fullname": user.full_name,
     }
     logger.info(
         "Run ban countdown",

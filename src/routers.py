@@ -42,6 +42,7 @@ async def process_button(
     logger_extra = {
         "user_id": query.from_user.id,
         "username": query.from_user.username,
+        "fullname": query.from_user.full_name,
     }
     logger.info(
         "Process answer button callback",
@@ -120,6 +121,7 @@ async def on_user_joined(
     logger_extra = {
         "user_id": event.from_user.id,
         "username": event.from_user.username,
+        "fullname": event.from_user.full_name,
     }
     logger.info(
         (
