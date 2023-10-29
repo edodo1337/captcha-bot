@@ -58,6 +58,7 @@ func (service *CaptchaService) Run() {
 }
 
 func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.ChatMember, chat *tele.Chat) UserData {
+	log.Printf("Restrict user %d\n", member.User.ID)
 	service.Bot.Restrict(chat, member)
 	stateData := UserData{CurrentPos: 3, CorrectPos: 8, State: Check, StartTime: time.Now()}
 	if err := service.FSM.SetData(member.User.ID, &stateData); err != nil {
@@ -95,6 +96,7 @@ func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.C
 		if err := service.Bot.Promote(chat, user); err != nil {
 			log.Printf("Promote error: %s", err)
 		}
+		log.Printf("Correct answer, promote user %d", user.User.ID)
 	}
 
 	service.FSM.SetData(userId, data)
@@ -113,7 +115,7 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 			return
 		}
 		if state == Check {
-			log.Println("Ban user")
+			log.Printf("Ban user %d", user.User.ID)
 			service.FSM.SetState(userId, Ban)
 			service.Bot.Ban(chat, user)
 		} else {
