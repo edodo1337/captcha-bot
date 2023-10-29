@@ -37,6 +37,7 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 			return err
 		}
 		userData := captchaService.ProcessButton(user, chat, logic.Right)
+
 		if userData == nil {
 			return nil
 		}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math/rand"
 	"time"
 
 	tele "gopkg.in/telebot.v3"
@@ -60,7 +61,16 @@ func (service *CaptchaService) Run() {
 func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.ChatMember, chat *tele.Chat) UserData {
 	log.Printf("Restrict user %d\n", member.User.ID)
 	service.Bot.Restrict(chat, member)
-	stateData := UserData{CurrentPos: 3, CorrectPos: 8, State: Check, StartTime: time.Now()}
+
+	currentPos := rand.Intn(CaptchaLength)
+	correctPos := rand.Intn(CaptchaLength)
+
+	for correctPos == currentPos {
+		randOffset := 2 + rand.Intn(5)
+		correctPos = (correctPos + randOffset + CaptchaLength + 1) % CaptchaLength
+	}
+
+	stateData := UserData{CurrentPos: currentPos, CorrectPos: correctPos, State: Check, StartTime: time.Now()}
 	if err := service.FSM.SetData(member.User.ID, &stateData); err != nil {
 		log.Println("Can't set state data", err)
 	}
