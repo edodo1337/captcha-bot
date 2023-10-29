@@ -4,6 +4,7 @@ import (
 	"captcha-bot/internal/app/logic"
 	"errors"
 	"sync"
+	"time"
 )
 
 type InMemoryFSM struct {
@@ -19,7 +20,7 @@ func NewInMemoryFSM() *InMemoryFSM {
 func (fsm *InMemoryFSM) SetState(userId int64, state logic.UserState) error {
 	userData, err := fsm.GetData(userId)
 	if errors.Is(err, logic.ErrStateNotFound) {
-		fsm.stateMap.Store(userId, logic.UserData{State: state})
+		fsm.stateMap.Store(userId, logic.UserData{State: state, StartTime: time.Now()})
 		return nil
 	}
 
