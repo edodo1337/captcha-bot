@@ -90,15 +90,9 @@ func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.C
 		return nil
 	}
 
-	if button == Left {
-		data.CurrentPos = (data.CurrentPos + CaptchaLength - 1) % CaptchaLength
-		if data.CurrentPos < 0 {
-			data.CurrentPos = -data.CurrentPos
-		}
-	}
-
-	if button == Right {
-		data.CurrentPos = (data.CurrentPos + CaptchaLength + 1) % CaptchaLength
+	data.CurrentPos = (data.CurrentPos + CaptchaLength + int(button)) % CaptchaLength
+	if data.CurrentPos < 0 {
+		data.CurrentPos = -data.CurrentPos
 	}
 
 	if data.CurrentPos == data.CorrectPos {

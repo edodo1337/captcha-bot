@@ -11,11 +11,11 @@ const (
 	Ban
 )
 
-type ButtonEvent uint8
+type ButtonEvent int8
 
 const (
-	Left ButtonEvent = iota
-	Right
+	Left  ButtonEvent = -1
+	Right ButtonEvent = 1
 )
 
 var ErrStateNotFound = errors.New("no state found for user")

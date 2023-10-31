@@ -14,44 +14,33 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 		keyboard.Row(btnLeft, btnRight),
 	)
 
-	captchaService.Bot.Handle(&btnLeft, func(c tele.Context) error {
-		chat := c.Chat()
-		user, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
-		if err != nil {
-			return err
-		}
+	handler := func(button logic.ButtonEvent) func(c tele.Context) error {
+		return func(c tele.Context) error {
+			chat := c.Chat()
+			user, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
+			if err != nil {
+				return err
+			}
 
-		userData := captchaService.ProcessButton(user, chat, logic.Left)
-		if userData != nil {
+			userData := captchaService.ProcessButton(user, chat, button)
+			if userData == nil {
+				return nil
+			}
+
+			if userData.State == logic.Approved {
+				c.Bot().Delete(c.Message())
+				return nil
+			}
+
 			msg := logic.CaptchaMessage(logic.CaptchaLength, userData.CurrentPos, userData.CorrectPos)
 			c.Bot().Edit(c.Message(), msg, c.Message().ReplyMarkup)
-		}
 
-		return nil
-	})
-
-	captchaService.Bot.Handle(&btnRight, func(c tele.Context) error {
-		chat := c.Chat()
-		user, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
-		if err != nil {
-			return err
-		}
-		userData := captchaService.ProcessButton(user, chat, logic.Right)
-
-		if userData == nil {
 			return nil
 		}
+	}
 
-		if userData.State == logic.Approved {
-			c.Bot().Delete(c.Message())
-			return nil
-		}
-
-		msg := logic.CaptchaMessage(logic.CaptchaLength, userData.CurrentPos, userData.CorrectPos)
-		c.Bot().Edit(c.Message(), msg, c.Message().ReplyMarkup)
-
-		return nil
-	})
+	captchaService.Bot.Handle(&btnRight, handler(logic.Left))
+	captchaService.Bot.Handle(&btnRight, handler(logic.Right))
 
 	return keyboard
 }
