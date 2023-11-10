@@ -2,6 +2,7 @@ package conf
 
 import (
 	"os"
+	"time"
 
 	"github.com/creasty/defaults"
 	"gopkg.in/yaml.v2"
@@ -10,8 +11,11 @@ import (
 // App config
 type Config struct {
 	Bot struct {
-		Token      string `yaml:"token"`
-		BanTimeout int    `yaml:"ban_timeout" default:"120"`
+		Token           string        `yaml:"token"`
+		BanTimeout      int           `yaml:"ban_timeout" default:"120"`
+		CaptchaMsg      string        `yaml:"captcha_message"`
+		UserStateTTL    time.Duration `yaml:"user_state_ttl" default:"300"`
+		CleanupInterval time.Duration `yaml:"cleanup_interval" default:"120"`
 	} `yaml:"bot"`
 }
 

@@ -1,3 +1,6 @@
 bot:
   token:
   ban_timeout: 120
+  captcha_message: Помоги жабе съесть яблоко
+  user_state_ttl: 300
+  cleanup_interval: 120

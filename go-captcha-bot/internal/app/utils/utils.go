@@ -3,7 +3,7 @@ package utils
 import (
 	"captcha-bot/internal/app/logic"
 	"captcha-bot/internal/pkg/conf"
-	f "captcha-bot/internal/pkg/fsm"
+	"captcha-bot/internal/pkg/storage"
 	"context"
 
 	h "captcha-bot/internal/app/handlers"
@@ -12,8 +12,8 @@ import (
 )
 
 func RunPolling(ctx context.Context, config *conf.Config) error {
-	fsm := f.NewInMemoryFSM()
-	captchaService, err := logic.NewCaptchaService(fsm, config)
+	st := storage.NewUserInMemoryStorage(config.Bot.UserStateTTL, config.Bot.CleanupInterval)
+	captchaService, err := logic.NewCaptchaService(st, config)
 	if err != nil {
 		return err
 	}

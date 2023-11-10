@@ -16,10 +16,17 @@ type UserData struct {
 	CurrentPos int
 	CorrectPos int
 	State      UserState
-	StartTime  time.Time
+	Expiration int64
 }
 
-type IFSM interface {
+func (item UserData) Expired() bool {
+	if item.Expiration == 0 {
+		return false
+	}
+	return time.Now().UnixNano() > item.Expiration
+}
+
+type IUserStorage interface {
 	SetState(userId int64, state UserState) error
 	GetState(userId int64) (UserState, error)
 	SetData(userId int64, data *UserData) error
@@ -27,12 +34,12 @@ type IFSM interface {
 }
 
 type CaptchaService struct {
-	FSM    IFSM
-	Config *conf.Config
-	Bot    *tele.Bot
+	Storage IUserStorage
+	Config  *conf.Config
+	Bot     *tele.Bot
 }
 
-func NewCaptchaService(fsm IFSM, config *conf.Config) (*CaptchaService, error) {
+func NewCaptchaService(st IUserStorage, config *conf.Config) (*CaptchaService, error) {
 	pref := tele.Settings{
 		Token:  config.BotToken(),
 		Poller: &tele.LongPoller{Timeout: 1 * time.Second},
@@ -48,9 +55,9 @@ func NewCaptchaService(fsm IFSM, config *conf.Config) (*CaptchaService, error) {
 	// b.Use(middleware.AutoRespond())
 
 	return &CaptchaService{
-		FSM:    fsm,
-		Config: config,
-		Bot:    bot,
+		Storage: st,
+		Config:  config,
+		Bot:     bot,
 	}, nil
 }
 
@@ -70,9 +77,11 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 		correctPos = (correctPos + randOffset + CaptchaLength + 1) % CaptchaLength
 	}
 
-	stateData := UserData{CurrentPos: currentPos, CorrectPos: correctPos, State: Check, StartTime: time.Now()}
-	if err := service.FSM.SetData(member.User.ID, &stateData); err != nil {
+	stateData := UserData{CurrentPos: currentPos, CorrectPos: correctPos, State: Check}
+	if err := service.Storage.SetData(member.User.ID, &stateData); err != nil {
 		log.Println("Can't set state data", err)
+	} else {
+		log.Println("State set")
 	}
 	go service.banCountdown(ctx, member, chat, time.Duration(service.Config.Bot.BanTimeout))
 
@@ -81,7 +90,7 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 
 func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.Chat, button ButtonEvent) *UserData {
 	userId := user.User.ID
-	data, err := service.FSM.GetData(userId)
+	data, err := service.Storage.GetData(userId)
 
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
@@ -103,7 +112,7 @@ func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.C
 		log.Printf("Correct answer, promote user %d", user.User.ID)
 	}
 
-	service.FSM.SetData(userId, data)
+	service.Storage.SetData(userId, data)
 	return data
 }
 
@@ -113,17 +122,17 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 		return
 	case <-time.After(timeout * time.Second):
 		userId := user.User.ID
-		state, err := service.FSM.GetState(userId)
+		state, err := service.Storage.GetState(userId)
 		if err != nil {
 			log.Printf("Get state error: %s\n", err)
 			return
 		}
 		if state == Check {
 			log.Printf("Ban user %d", user.User.ID)
-			service.FSM.SetState(userId, Ban)
+			service.Storage.SetState(userId, Ban)
 			service.Bot.Ban(chat, user)
 		} else {
-			service.FSM.SetState(userId, Approved)
+			service.Storage.SetState(userId, Approved)
 		}
 	}
 }

@@ -32,14 +32,21 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 				return nil
 			}
 
-			msg := logic.CaptchaMessage(logic.CaptchaLength, userData.CurrentPos, userData.CorrectPos)
+			msg := logic.CaptchaMessage(
+				logic.CaptchaLength,
+				userData.CurrentPos,
+				userData.CorrectPos,
+				captchaService.Config.Bot.CaptchaMsg,
+				captchaService.Config.Bot.BanTimeout,
+			)
+
 			c.Bot().Edit(c.Message(), msg, c.Message().ReplyMarkup)
 
 			return nil
 		}
 	}
 
-	captchaService.Bot.Handle(&btnRight, handler(logic.Left))
+	captchaService.Bot.Handle(&btnLeft, handler(logic.Left))
 	captchaService.Bot.Handle(&btnRight, handler(logic.Right))
 
 	return keyboard
