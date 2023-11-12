@@ -16,6 +16,8 @@ type Config struct {
 		CaptchaMsg      string        `yaml:"captcha_message"`
 		UserStateTTL    time.Duration `yaml:"user_state_ttl" default:"300"`
 		CleanupInterval time.Duration `yaml:"cleanup_interval" default:"120"`
+		MinKickVotesFor uint          `yaml:"min_kick_votes_for" default:"3"`
+		VoteKickTimeout time.Duration `yaml:"vote_kick_timeout" default:"120"`
 	} `yaml:"bot"`
 }
 
@@ -38,6 +40,7 @@ func New() *Config {
 	if err := defaults.Set(&cfg); err != nil {
 		panic(err)
 	}
+
 	return &cfg
 }
 

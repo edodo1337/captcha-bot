@@ -4,3 +4,5 @@ bot:
   captcha_message: Помоги жабе съесть яблоко
   user_state_ttl: 300
   cleanup_interval: 120
+  vote_kick_timeout: 120
+  min_kick_votes_for: 3
