@@ -58,8 +58,8 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 	return &userData, nil
 }
 
-func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.Chat, button ButtonEvent) (*UserData, error) {
-	userId := user.User.ID
+func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele.Chat, button ButtonEvent) (*UserData, error) {
+	userId := member.User.ID
 	data, err := service.Storage.GetByUserID(userId)
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
@@ -75,10 +75,28 @@ func (service *CaptchaService) ProcessButton(user *tele.ChatMember, chat *tele.C
 
 	if data.CurrentPos == data.CorrectPos {
 		data.State = Approved
-		if err := service.Bot.Promote(chat, user); err != nil {
+
+		permissions := tele.Rights{
+			CanPostMessages:   true,
+			CanEditMessages:   true,
+			CanDeleteMessages: true,
+			CanInviteUsers:    true,
+			CanSendMessages:   true,
+			CanSendMedia:      true,
+			CanSendPolls:      true,
+			CanSendOther:      true,
+			CanAddPreviews:    true,
+		}
+
+		unrestrictedMember := &tele.ChatMember{
+			User:   member.User,
+			Rights: permissions,
+		}
+
+		if err := service.Bot.Restrict(chat, unrestrictedMember); err != nil {
 			log.Printf("Promote error: %s", err)
 		}
-		log.Printf("Correct answer, promote user %d", user.User.ID)
+		log.Printf("Correct answer, promote user %d", member.User.ID)
 	}
 
 	service.Storage.Put(data)
