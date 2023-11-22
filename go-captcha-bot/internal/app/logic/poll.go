@@ -103,12 +103,14 @@ func (service *PollService) pollCountdown(
 			userToKick := memberToKick.User
 
 			if pollData.VotesFor < minVotes {
+				log.Printf("Couldn't kick user=%d. Min votes threesold", memberToKick.User.ID)
 				msg := VoteKickMsgFailed(userToKick, MinVotesThreesold, minVotes)
 				service.Bot.Edit(pollMsg, msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
 				return
 			}
 
 			if pollData.VotesFor <= pollData.VotesAgainst {
+				log.Printf("Kick user=%d. Min votes threesold exceed", memberToKick.User.ID)
 				msg := VoteKickMsgFailed(userToKick, NotEnoughVotes, minVotes)
 				service.Bot.Edit(pollMsg, msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
 				return
