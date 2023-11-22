@@ -88,8 +88,10 @@ func (service *PollService) pollCountdown(
 ) {
 	select {
 	case <-ctx.Done():
+		log.Println("Stop votekick countdown due to ctx signal")
 		return
 	case <-time.After(timeout):
+		log.Printf("Check votekick status for user=%d", memberToKick.User.ID)
 		memberToKickUserID := memberToKick.User.ID
 		pollData, err := service.Storage.GetByUserID(memberToKickUserID)
 		if err != nil {
