@@ -11,6 +11,7 @@ from aiogram.filters.chat_member_updated import (
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters.command import Command
 
 from consts import ANSWER_TIMEOUT_SEC
 from consts import BOT as bot
@@ -182,4 +183,14 @@ async def on_user_joined(
             chat=event.chat,
             bot=bot,
         ),
+    )
+
+
+@captcha_router.message(Command("hello"))
+async def hello(
+    event: types.ChatMemberUpdated,
+    state: FSMContext,
+) -> None:
+    await event.answer(
+        text="Привет!",
     )

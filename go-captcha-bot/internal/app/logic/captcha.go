@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tele "gopkg.in/telebot.v3"
+	"gopkg.in/telebot.v3/middleware"
 )
 
 type UserRepository interface {
@@ -32,6 +33,8 @@ func NewCaptchaService(bot *tele.Bot, st UserRepository, config *conf.Config) (*
 
 func (service *CaptchaService) Run() {
 	service.Bot.Start()
+	service.Bot.Use(middleware.Logger())
+	service.Bot.Use(middleware.AutoRespond())
 }
 
 func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.ChatMember, chat *tele.Chat) (*UserData, error) {

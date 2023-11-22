@@ -46,4 +46,8 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 func registerHandlers(ctx context.Context, captchaService *logic.CaptchaService, pollService *logic.PollService) {
 	captchaService.Bot.Handle(tele.OnUserJoined, h.ShowCaptcha(ctx, captchaService))
 	captchaService.Bot.Handle("/votekick", h.VoteKick(ctx, pollService))
+	captchaService.Bot.Handle("/hello", func(c tele.Context) error {
+		log.Println("Hello cmd")
+		return c.Send("Привет!")
+	})
 }
