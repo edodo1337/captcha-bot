@@ -124,7 +124,7 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 			log.Printf("Ban user %d", user.User.ID)
 			userData.State = Ban
 			service.Storage.Put(userData)
-			service.Bot.Ban(chat, user)
+			service.Bot.Ban(chat, user, true)
 		} else {
 			userData.State = Approved
 			service.Storage.Put(userData)

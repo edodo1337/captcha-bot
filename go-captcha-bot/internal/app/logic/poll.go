@@ -118,7 +118,7 @@ func (service *PollService) pollCountdown(
 
 			msg := VoteKickMsgSucess(userToKick)
 			service.Bot.Edit(pollMsg, msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
-			service.Bot.Ban(chat, memberToKick)
+			service.Bot.Ban(chat, memberToKick, true)
 		}
 	}
 }
