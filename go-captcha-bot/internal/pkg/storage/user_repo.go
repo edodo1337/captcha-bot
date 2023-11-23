@@ -87,3 +87,7 @@ func (st *UserInMemoryRepo) Put(userData *logic.UserData) error {
 	st.stateMap.Store(userData.UserID, userData)
 	return nil
 }
+
+func (st *UserInMemoryRepo) Remove(userID int64) {
+	st.stateMap.Delete(userID)
+}

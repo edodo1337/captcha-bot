@@ -28,6 +28,17 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 		return err
 	}
 
+	// clean up old updates
+	startTime := time.Now().Unix()
+	bot.Use(func(next tele.HandlerFunc) tele.HandlerFunc {
+		return func(c tele.Context) error {
+			if c.Message().Unixtime < startTime {
+				return nil
+			}
+			return next(c)
+		}
+	})
+
 	captchaService, err := logic.NewCaptchaService(bot, userRepo, config)
 	if err != nil {
 		return err

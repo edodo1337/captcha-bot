@@ -15,6 +15,7 @@ import (
 type UserRepository interface {
 	GetByUserID(userID int64) (*UserData, error)
 	Put(userData *UserData) error
+	Remove(userID int64)
 }
 
 type CaptchaService struct {
@@ -122,12 +123,8 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 		}
 		if userData.State == Check {
 			log.Printf("Ban user %d", user.User.ID)
-			userData.State = Ban
-			service.Storage.Put(userData)
 			service.Bot.Ban(chat, user, true)
-		} else {
-			userData.State = Approved
-			service.Storage.Put(userData)
 		}
+		service.Storage.Remove(userData.UserID)
 	}
 }

@@ -14,6 +14,7 @@ import (
 type PollRepository interface {
 	GetByUserID(userID int64) (*PollData, error)
 	Put(pollData *PollData) error
+	Remove(userID int64)
 }
 
 type PollService struct {
@@ -119,6 +120,7 @@ func (service *PollService) pollCountdown(
 			msg := VoteKickMsgSucess(userToKick)
 			service.Bot.Edit(pollMsg, msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
 			service.Bot.Ban(chat, memberToKick, true)
+			service.Storage.Remove(memberToKickUserID)
 		}
 	}
 }

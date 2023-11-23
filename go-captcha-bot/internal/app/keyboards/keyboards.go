@@ -21,6 +21,7 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 			chat := c.Chat()
 			user, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
 			if err != nil {
+				log.Printf("Get chat member error: %s", err)
 				return err
 			}
 
@@ -73,6 +74,7 @@ func VoteKickKeyboard(pollService *logic.PollService, memberToKick *tele.ChatMem
 			chat := c.Chat()
 			member, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
 			if err != nil {
+				log.Printf("Get chat member error: %s", err)
 				return err
 			}
 

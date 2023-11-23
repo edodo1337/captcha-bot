@@ -95,3 +95,7 @@ func (st *PollInMemoryRepo) Put(pollData *logic.PollData) error {
 
 	return nil
 }
+
+func (st *PollInMemoryRepo) Remove(userID int64) {
+	st.m.Delete(userID)
+}
