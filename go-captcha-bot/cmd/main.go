@@ -12,6 +12,7 @@ import (
 
 func main() {
 	config := conf.New()
+	utils.InitLogger(config)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop,

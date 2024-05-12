@@ -18,7 +18,13 @@ type Config struct {
 		CleanupInterval time.Duration `yaml:"cleanup_interval" default:"120"`
 		MinKickVotesFor uint          `yaml:"min_kick_votes_for" default:"3"`
 		VoteKickTimeout time.Duration `yaml:"vote_kick_timeout" default:"120"`
+		GeminiApiToken  string        `yaml:"gemini_api_token"`
+		GeminiModel     string        `yaml:"gemini_model" default:"gemini-pro"`
+		PromptWrap      string        `yaml:"prompt_wrap"`
 	} `yaml:"bot"`
+	Logger struct {
+		LogFile string `yaml:"log_file" default:"bot.log"`
+	}
 }
 
 func New() *Config {

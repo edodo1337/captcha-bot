@@ -4,6 +4,7 @@ import (
 	"captcha-bot/internal/app/keyboards"
 	"captcha-bot/internal/app/logic"
 	"context"
+	"fmt"
 	"log"
 
 	tele "gopkg.in/telebot.v3"
@@ -109,6 +110,23 @@ func VoteKick(ctx context.Context, pollService *logic.PollService) tele.HandlerF
 			log.Printf("Votekick init error %s", err)
 			return err
 		}
+
+		return nil
+	}
+}
+
+func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterService) tele.HandlerFunc {
+	return func(c tele.Context) error {
+		result := spamFilterService.CheckMessage(ctx, c.Message().Text)
+		fmt.Println(c.Message().Text, result)
+
+		var response string
+		if result {
+			response = "Это спам"
+		} else {
+			response = "Это не спам"
+		}
+		c.Reply(response)
 
 		return nil
 	}

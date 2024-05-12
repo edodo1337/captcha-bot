@@ -4,5 +4,9 @@ bot:
   captcha_message: Помоги жабе съесть яблоко
   user_state_ttl: 300
   cleanup_interval: 120
-  vote_kick_timeout: 120
-  min_kick_votes_for: 3
+  vote_kick_timeout: 10
+  min_kick_votes_for: 1
+  gemini_api_token:
+  prompt_wrap: "Define if provided message is spam. Respond 1 if it is spam else 0: "
+  admins:
+    -
