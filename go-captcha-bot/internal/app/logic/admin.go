@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"captcha-bot/internal/pkg/conf"
 	"context"
-	"fmt"
 	"log"
-	"os/exec"
+	"os"
 	"strconv"
 	"strings"
 
@@ -45,26 +44,35 @@ func (service *AdminService) TailLogs(ctx context.Context, msg tele.Message) (st
 	if err != nil {
 		linesNum = DEFAULT_LINES_NUM
 	}
+	result, err := readLastNLines(service.Config.Logger.LogFile, linesNum)
+	if err != nil {
+		log.Println("Log file reading error:", err)
+		return "", nil
+	}
 
-	cmd := exec.Command("tail", "-n", fmt.Sprintf("%d", linesNum), conf.New().Logger.LogFile)
-	stdout, err := cmd.StdoutPipe()
+	return result, nil
+}
+
+func readLastNLines(filePath string, linesNum int) (string, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
+	defer file.Close()
 
-	if err := cmd.Start(); err != nil {
-		return "", err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	var output strings.Builder
+	var lines []string
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		output.WriteString(scanner.Text() + "\n")
+		lines = append(lines, scanner.Text())
 	}
 
-	if err := cmd.Wait(); err != nil {
+	if err := scanner.Err(); err != nil {
 		return "", err
 	}
 
-	return output.String(), nil
+	if len(lines) < linesNum {
+		linesNum = len(lines)
+	}
+
+	return strings.Join(lines[len(lines)-linesNum:], "\n"), nil
 }
