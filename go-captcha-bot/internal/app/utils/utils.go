@@ -11,6 +11,7 @@ import (
 	h "captcha-bot/internal/app/handlers"
 
 	tele "gopkg.in/telebot.v3"
+	"gopkg.in/telebot.v3/middleware"
 )
 
 func RunPolling(ctx context.Context, config *conf.Config) error {
@@ -28,7 +29,7 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 		return err
 	}
 
-	// bot.Use(middleware.Logger())
+	bot.Use(middleware.Logger())
 	// clean up old updates
 	startTime := time.Now().Unix()
 	bot.Use(func(next tele.HandlerFunc) tele.HandlerFunc {
