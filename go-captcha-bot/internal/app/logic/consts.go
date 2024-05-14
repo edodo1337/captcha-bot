@@ -25,3 +25,4 @@ var ErrUserIsAdmin = errors.New("user is admin")
 var ErrPollAlreadyExist = errors.New("poll already exist for user")
 
 const CaptchaLength = 11
+const DEFAULT_LINES_NUM = 10

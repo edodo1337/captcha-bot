@@ -9,4 +9,5 @@ bot:
   gemini_api_token:
   prompt_wrap: "Define if provided message is spam. Respond 1 if it is spam else 0: "
   admins:
-    -
+    - wakawakawakawak
+    - MasterKot

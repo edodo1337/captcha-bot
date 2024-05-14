@@ -21,6 +21,7 @@ type Config struct {
 		GeminiApiToken  string        `yaml:"gemini_api_token"`
 		GeminiModel     string        `yaml:"gemini_model" default:"gemini-pro"`
 		PromptWrap      string        `yaml:"prompt_wrap"`
+		Admins          []string      `yaml:"admins"`
 	} `yaml:"bot"`
 	Logger struct {
 		LogFile string `yaml:"log_file" default:"bot.log"`

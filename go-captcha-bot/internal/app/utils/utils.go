@@ -2,7 +2,6 @@ package utils
 
 import (
 	"captcha-bot/internal/app/logic"
-	"captcha-bot/internal/pkg/clients"
 	"captcha-bot/internal/pkg/conf"
 	"captcha-bot/internal/pkg/storage"
 	"context"
@@ -17,7 +16,6 @@ import (
 func RunPolling(ctx context.Context, config *conf.Config) error {
 	userRepo := storage.NewUserInMemoryRepo(config.Bot.UserStateTTL, config.Bot.CleanupInterval)
 	pollRepo := storage.NewPollInMemoryRepo(config.Bot.VoteKickTimeout, config.Bot.CleanupInterval)
-	geminiClient := clients.NewGeminiClient(ctx, config)
 
 	pref := tele.Settings{
 		Token:  config.BotToken(),
@@ -50,13 +48,12 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 	if err != nil {
 		return err
 	}
-
-	spamFilterService, err := logic.NewSpamFilterService(geminiClient, config)
+	adminService, err := logic.NewAdminService(bot, config)
 	if err != nil {
 		return err
 	}
 
-	registerHandlers(ctx, captchaService, pollService, spamFilterService)
+	registerHandlers(ctx, captchaService, pollService, adminService)
 	captchaService.Run()
 
 	return nil
@@ -66,13 +63,15 @@ func registerHandlers(
 	ctx context.Context,
 	captchaService *logic.CaptchaService,
 	pollService *logic.PollService,
-	spamFilterService *logic.SpamFilterService,
+	adminService *logic.AdminService,
 ) {
 	captchaService.Bot.Handle(tele.OnUserJoined, h.ShowCaptcha(ctx, captchaService))
+	captchaService.Bot.Handle(tele.OnAddedToGroup, h.ShowCaptcha(ctx, captchaService))
+
 	captchaService.Bot.Handle("/votekick", h.VoteKick(ctx, pollService))
 	captchaService.Bot.Handle("/hello", func(c tele.Context) error {
 		log.Println("Hello cmd")
 		return c.Send("Привет!")
 	})
-	captchaService.Bot.Handle(tele.OnText, h.OnNewMessage(ctx, spamFilterService))
+	adminService.Bot.Handle("/logs", h.TailLogs(ctx, adminService))
 }

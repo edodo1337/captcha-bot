@@ -3,8 +3,8 @@ package handlers
 import (
 	"captcha-bot/internal/app/keyboards"
 	"captcha-bot/internal/app/logic"
+
 	"context"
-	"fmt"
 	"log"
 
 	tele "gopkg.in/telebot.v3"
@@ -13,7 +13,15 @@ import (
 func ShowCaptcha(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		chat := c.Chat()
-		member, err := c.Bot().ChatMemberOf(chat, c.Message().Sender)
+		log.Printf(
+			"Handle ShowCatpcha: sender: %s %s, userJoined: %s %s",
+			c.Message().Sender.FirstName,
+			c.Message().Sender.LastName,
+			c.Message().UserJoined.FirstName,
+			c.Message().UserJoined.LastName,
+		)
+
+		member, err := c.Bot().ChatMemberOf(chat, c.Message().UserJoined)
 		log.Printf(
 			"User joined name=%s %s, username=%s, user_id=%d\n",
 			member.User.FirstName,
@@ -118,8 +126,6 @@ func VoteKick(ctx context.Context, pollService *logic.PollService) tele.HandlerF
 func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		result := spamFilterService.CheckMessage(ctx, c.Message().Text)
-		fmt.Println(c.Message().Text, result)
-
 		var response string
 		if result {
 			response = "Это спам"
@@ -127,6 +133,21 @@ func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterServic
 			response = "Это не спам"
 		}
 		c.Reply(response)
+
+		return nil
+	}
+}
+
+func TailLogs(ctx context.Context, adminService *logic.AdminService) tele.HandlerFunc {
+	return func(c tele.Context) error {
+		log.Println("Handle TailLog")
+		msg, err := adminService.TailLogs(ctx, *c.Message())
+		if err != nil {
+			c.Reply(err)
+			return err
+		} else {
+			c.Reply(msg)
+		}
 
 		return nil
 	}
