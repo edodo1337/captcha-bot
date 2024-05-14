@@ -63,11 +63,11 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 }
 
 func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele.Chat, button ButtonEvent) (*UserData, error) {
-	userId := member.User.ID
-	data, err := service.Storage.GetByUserID(userId)
+	userID := member.User.ID
+	data, err := service.Storage.GetByUserID(userID)
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
-			log.Printf("Process button error %s\n", err)
+			log.Printf("Process button error userID: %d, %s\n", userID, err)
 		}
 		return nil, err
 	}

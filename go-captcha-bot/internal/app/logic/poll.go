@@ -131,7 +131,7 @@ func (service *PollService) ProcessButton(user, memberToKick *tele.ChatMember, c
 	data, err := service.Storage.GetByUserID(memberToKickID)
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
-			log.Printf("Process poll button error %s\n", err)
+			log.Printf("Process poll button error userID: %d, %s\n", userID, err)
 		}
 		return nil, err
 	}
