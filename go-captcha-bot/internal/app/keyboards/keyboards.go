@@ -27,12 +27,12 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 
 			userData, err := captchaService.ProcessButton(user, chat, button)
 			if err != nil {
-				log.Printf("Process captcha button error: %s", err)
+				log.Printf("Process captcha button, userID: %d, error: %s", user.User.ID, err)
 				return nil
 			}
 
 			if userData == nil {
-				log.Printf("Couldn't process captcha button, userData is null")
+				log.Printf("Couldn't process captcha button, userData is null for userID %d", user.User.ID)
 				return nil
 			}
 

@@ -99,6 +99,7 @@ func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele
 
 		if err := service.Bot.Restrict(chat, unrestrictedMember); err != nil {
 			log.Printf("Promote error: %s", err)
+			return nil, err
 		}
 		log.Printf("Correct answer, promote user %d", member.User.ID)
 	}
