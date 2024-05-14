@@ -11,3 +11,6 @@ bot:
   admins:
     - wakawakawakawak
     - MasterKot
+
+logger:
+  log_file: bot.log
