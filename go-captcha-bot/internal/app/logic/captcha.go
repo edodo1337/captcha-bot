@@ -71,6 +71,9 @@ func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele
 		}
 		return nil, err
 	}
+	if data.State != Check {
+		return nil, errors.New("user has no active captcha status")
+	}
 
 	data.CurrentPos = (data.CurrentPos + CaptchaLength + int(button)) % CaptchaLength
 	if data.CurrentPos < 0 {
