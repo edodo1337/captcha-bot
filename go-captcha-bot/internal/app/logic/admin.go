@@ -15,12 +15,14 @@ import (
 type AdminService struct {
 	Config *conf.Config
 	Bot    *tele.Bot
+	poller *tele.LongPoller
 }
 
-func NewAdminService(bot *tele.Bot, config *conf.Config) (*AdminService, error) {
+func NewAdminService(bot *tele.Bot, poller *tele.LongPoller, config *conf.Config) (*AdminService, error) {
 	return &AdminService{
 		Config: config,
 		Bot:    bot,
+		poller: poller,
 	}, nil
 }
 
@@ -75,4 +77,8 @@ func readLastNLines(filePath string, linesNum int) (string, error) {
 	}
 
 	return strings.Join(lines[len(lines)-linesNum:], "\n"), nil
+}
+
+func (service *AdminService) GetLastUpdateId() int {
+	return service.poller.LastUpdateID
 }

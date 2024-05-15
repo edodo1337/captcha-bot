@@ -113,6 +113,7 @@ func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele
 }
 
 func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.ChatMember, chat *tele.Chat, timeout time.Duration) {
+	log.Printf("Run ban countdown for userID: %d\n", user.User.ID)
 	select {
 	case <-ctx.Done():
 		log.Println("Shutdown countdown due to ctx signal")

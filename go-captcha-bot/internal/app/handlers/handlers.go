@@ -3,6 +3,7 @@ package handlers
 import (
 	"captcha-bot/internal/app/keyboards"
 	"captcha-bot/internal/app/logic"
+	"strconv"
 
 	"context"
 	"log"
@@ -10,18 +11,31 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-func ShowCaptcha(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
+func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		chat := c.Chat()
-		log.Printf(
-			"Handle ShowCatpcha: sender: %s %s, userJoined: %s %s",
-			c.Message().Sender.FirstName,
-			c.Message().Sender.LastName,
-			c.Message().UserJoined.FirstName,
-			c.Message().UserJoined.LastName,
+		userJoined := c.Update().ChatMember.NewChatMember.User
+		log.Println(
+			"Handle chat member change",
+			c.Sender().Username, c.Sender().FirstName, c.Sender().LastName, c.Sender().ID,
 		)
 
-		member, err := c.Bot().ChatMemberOf(chat, c.Message().UserJoined)
+		oldRole := c.Update().ChatMember.OldChatMember.Role
+		newRole := c.Update().ChatMember.NewChatMember.Role
+		isMemberOld := c.Update().ChatMember.OldChatMember.Member
+		isMemberNew := c.Update().ChatMember.NewChatMember.Member
+
+		conditionLeft := (oldRole == tele.Left) || (oldRole == tele.Kicked) || (oldRole == tele.Restricted) && (!isMemberOld)
+		conditionRight := (newRole == tele.Member) || (newRole == tele.Restricted) && isMemberNew
+
+		if !(conditionLeft && conditionRight) {
+			log.Println("No new user joined, skip")
+			return nil
+		}
+
+		log.Println("New user joined")
+
+		member, err := c.Bot().ChatMemberOf(chat, userJoined)
 		log.Printf(
 			"User joined name=%s %s, username=%s, user_id=%d\n",
 			member.User.FirstName,
@@ -54,7 +68,13 @@ func ShowCaptcha(ctx context.Context, captchaService *logic.CaptchaService) tele
 			captchaService.Config.Bot.BanTimeout,
 		)
 
-		c.Reply(msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
+		log.Println("Reply captcha message")
+		msgHello := "Привет, [пользователь](tg://user?id=" + strconv.Itoa(int(userJoined.ID)) + ")!"
+		c.Send(msgHello, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
+		err = c.Send(msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
+		if err != nil {
+			log.Println("Send captcha err", err)
+		}
 
 		return nil
 	}
