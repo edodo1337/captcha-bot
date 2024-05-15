@@ -3,7 +3,7 @@ package handlers
 import (
 	"captcha-bot/internal/app/keyboards"
 	"captcha-bot/internal/app/logic"
-	"strconv"
+	"fmt"
 
 	"context"
 	"log"
@@ -69,7 +69,7 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 		)
 
 		log.Println("Reply captcha message")
-		msgHello := "Привет, [пользователь](tg://user?id=" + strconv.Itoa(int(userJoined.ID)) + ")!"
+		msgHello := fmt.Sprintf("Добро пожаловать, [%s %s](tg://user?id=%d)!", userJoined.FirstName, userJoined.LastName, userJoined.ID)
 		c.Send(msgHello, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
 		err = c.Send(msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
 		if err != nil {
