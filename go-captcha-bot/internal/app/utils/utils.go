@@ -18,8 +18,32 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 	pollRepo := storage.NewPollInMemoryRepo(config.Bot.VoteKickTimeout, config.Bot.CleanupInterval)
 
 	pref := tele.Settings{
-		Token:  config.BotToken(),
-		Poller: &tele.LongPoller{Timeout: 1 * time.Second},
+		Token: config.BotToken(),
+		Poller: &tele.LongPoller{Timeout: 1 * time.Second, AllowedUpdates: []string{
+			"update_id",
+			"message",
+			"edited_message",
+			"channel_post",
+			"edited_channel_post",
+			"business_connection",
+			"business_message",
+			"edited_business_message",
+			"deleted_business_messages",
+			"message_reaction",
+			"message_reaction_count",
+			"inline_query",
+			"chosen_inline_result",
+			"callback_query",
+			"shipping_query",
+			"pre_checkout_query",
+			"poll",
+			"poll_answer",
+			"my_chat_member",
+			"chat_member",
+			"chat_join_request",
+			"chat_boost",
+			"removed_chat_boost",
+		}},
 	}
 
 	bot, err := tele.NewBot(pref)
