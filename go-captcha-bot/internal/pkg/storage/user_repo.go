@@ -4,6 +4,7 @@ import (
 	"captcha-bot/internal/app/logic"
 	"errors"
 	"log"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -54,8 +55,9 @@ func (st *UserInMemoryRepo) removeExpired() {
 	})
 }
 
-func (st *UserInMemoryRepo) GetByUserID(userID int64) (*logic.UserData, error) {
-	userDataRaw, ok := st.stateMap.Load(userID)
+func (st *UserInMemoryRepo) GetUserData(userID int64, chatID int64) (*logic.UserData, error) {
+	key := strconv.FormatInt(userID, 10) + strconv.FormatInt(chatID, 10)
+	userDataRaw, ok := st.stateMap.Load(key)
 	if !ok {
 		return nil, logic.ErrStateNotFound
 	}
@@ -75,7 +77,10 @@ func (st *UserInMemoryRepo) GetByUserID(userID int64) (*logic.UserData, error) {
 
 func (st *UserInMemoryRepo) Put(userData *logic.UserData) error {
 	if userData.UserID == 0 {
-		return errors.New("couldn't put user with empty UserID")
+		return errors.New("couldn't put userData with empty UserID")
+	}
+	if userData.ChatID == 0 {
+		return errors.New("couldn't put userData with empty ChatID")
 	}
 
 	expiration := int64(0)
@@ -84,10 +89,13 @@ func (st *UserInMemoryRepo) Put(userData *logic.UserData) error {
 	}
 	userData.Expiration = expiration
 
-	st.stateMap.Store(userData.UserID, userData)
+	key := strconv.FormatInt(userData.UserID, 10) + strconv.FormatInt(userData.ChatID, 10)
+	st.stateMap.Store(key, userData)
+
 	return nil
 }
 
-func (st *UserInMemoryRepo) Remove(userID int64) {
-	st.stateMap.Delete(userID)
+func (st *UserInMemoryRepo) Remove(userID int64, chatID int64) {
+	key := strconv.FormatInt(userID, 10) + strconv.FormatInt(chatID, 10)
+	st.stateMap.Delete(key)
 }

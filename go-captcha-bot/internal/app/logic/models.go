@@ -3,14 +3,18 @@ package logic
 import (
 	"sync"
 	"time"
+
+	tele "gopkg.in/telebot.v3"
 )
 
 type UserData struct {
-	CurrentPos int
-	CorrectPos int
-	State      UserState
-	Expiration int64
-	UserID     int64
+	CurrentPos      int
+	CorrectPos      int
+	State           UserState
+	Expiration      int64
+	UserID          int64
+	ChatID          int64
+	CaptchaMessages []*tele.Message
 }
 
 func (item *UserData) Expired() bool {

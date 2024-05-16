@@ -37,14 +37,6 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 		)
 
 		member, err := c.Bot().ChatMemberOf(chat, userJoined)
-		log.Printf(
-			"User joined name=%s %s, username=%s, user_id=%d\n",
-			member.User.FirstName,
-			member.User.LastName,
-			member.User.Username,
-			member.User.ID,
-		)
-
 		if err != nil {
 			log.Println("ChatMemberOf error", err)
 			return err
@@ -71,10 +63,19 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 
 		log.Println("Reply captcha message")
 		msgHello := fmt.Sprintf("Добро пожаловать, [%s %s](tg://user?id=%d)!", userJoined.FirstName, userJoined.LastName, userJoined.ID)
-		c.Send(msgHello, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
-		err = c.Send(msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
+		msg1, err := c.Bot().Send(c.Chat(), msgHello, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
+		if err != nil {
+			log.Println("Send hello msg err", err)
+		}
+
+		msg2, err := c.Bot().Send(c.Chat(), msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
 		if err != nil {
 			log.Println("Send captcha err", err)
+		}
+
+		_, err = captchaService.SaveMessages(userJoined, c.Chat(), []*tele.Message{msg1, msg2})
+		if err != nil {
+			log.Println("Save messages err", err)
 		}
 
 		return nil
@@ -161,7 +162,6 @@ func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterServic
 
 func TailLogs(ctx context.Context, adminService *logic.AdminService) tele.HandlerFunc {
 	return func(c tele.Context) error {
-		log.Println("Handle TailLog")
 		msg, err := adminService.TailLogs(ctx, *c.Message())
 		if err != nil {
 			c.Reply(err)

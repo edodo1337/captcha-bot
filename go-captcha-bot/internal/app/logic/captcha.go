@@ -13,9 +13,9 @@ import (
 )
 
 type UserRepository interface {
-	GetByUserID(userID int64) (*UserData, error)
+	GetUserData(userID int64, chatID int64) (*UserData, error)
 	Put(userData *UserData) error
-	Remove(userID int64)
+	Remove(userID int64, chatID int64)
 }
 
 type CaptchaService struct {
@@ -50,7 +50,11 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 		correctPos = (correctPos + randOffset + CaptchaLength + 1) % CaptchaLength
 	}
 
-	userData := UserData{CurrentPos: currentPos, CorrectPos: correctPos, State: Check, UserID: member.User.ID}
+	userData := UserData{
+		State:      Check,
+		CurrentPos: currentPos, CorrectPos: correctPos,
+		UserID: member.User.ID, ChatID: chat.ID,
+	}
 
 	if err := service.Storage.Put(&userData); err != nil {
 		log.Println("Can't set state data", err)
@@ -64,10 +68,10 @@ func (service *CaptchaService) InitCaptcha(ctx context.Context, member *tele.Cha
 
 func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele.Chat, button ButtonEvent) (*UserData, error) {
 	userID := member.User.ID
-	data, err := service.Storage.GetByUserID(userID)
+	data, err := service.Storage.GetUserData(userID, chat.ID)
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
-			log.Printf("Process button error userID: %d, %s\n", userID, err)
+			log.Printf("Process button error userID: %d, chatID: %d %s\n", data.UserID, data.ChatID, err)
 		}
 		return nil, err
 	}
@@ -105,6 +109,10 @@ func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele
 			return nil, err
 		}
 		log.Printf("Correct answer, promote user %d", member.User.ID)
+
+		if err := service.FlushCaptcha(member.User, chat, data.CaptchaMessages); err != nil {
+			log.Println("Flush captcha error", err)
+		}
 	}
 
 	service.Storage.Put(data)
@@ -120,8 +128,8 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 		return
 	case <-time.After(timeout * time.Second):
 		log.Printf("Check countdown for user=%d", user.User.ID)
-		userId := user.User.ID
-		userData, err := service.Storage.GetByUserID(userId)
+		userID := user.User.ID
+		userData, err := service.Storage.GetUserData(userID, chat.ID)
 		if err != nil {
 			log.Printf("Get state error: %s\n", err)
 			return
@@ -130,6 +138,39 @@ func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.Chat
 			log.Printf("Ban user %d", user.User.ID)
 			service.Bot.Ban(chat, user, true)
 		}
-		service.Storage.Remove(userData.UserID)
+		service.Storage.Remove(userID, chat.ID)
 	}
+}
+
+func (service *CaptchaService) SaveMessages(user *tele.User, chat *tele.Chat, messages []*tele.Message) (*UserData, error) {
+	data, err := service.Storage.GetUserData(user.ID, chat.ID)
+	if err != nil {
+		if !errors.Is(err, ErrStateNotFound) {
+			log.Printf("SaveMessages error userID: %d, chatID: %d %s\n", data.UserID, data.ChatID, err)
+		}
+		return nil, err
+	}
+
+	data.CaptchaMessages = append(data.CaptchaMessages, messages...)
+	if err := service.Storage.Put(data); err != nil {
+		log.Println("Can't save user data", err)
+		return nil, err
+	}
+	return data, nil
+}
+
+func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, messages []*tele.Message) error {
+	data, err := service.Storage.GetUserData(user.ID, chat.ID)
+	if err != nil {
+		if !errors.Is(err, ErrStateNotFound) {
+			log.Printf("FlushCaptcha error userID: %d, chatID: %d %s\n", data.UserID, data.ChatID, err)
+		}
+		return err
+	}
+
+	for _, msg := range data.CaptchaMessages {
+		service.Bot.Delete(msg)
+	}
+
+	return nil
 }
