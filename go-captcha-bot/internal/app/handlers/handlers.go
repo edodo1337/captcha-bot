@@ -14,6 +14,10 @@ import (
 func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		chat := c.Chat()
+		if c.Update().ChatMember == nil {
+			return nil
+		}
+
 		userJoined := c.Update().ChatMember.NewChatMember.User
 		oldRole := c.Update().ChatMember.OldChatMember.Role
 		newRole := c.Update().ChatMember.NewChatMember.Role
