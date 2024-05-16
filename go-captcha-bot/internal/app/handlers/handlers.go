@@ -15,11 +15,6 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 	return func(c tele.Context) error {
 		chat := c.Chat()
 		userJoined := c.Update().ChatMember.NewChatMember.User
-		log.Println(
-			"Handle chat member change",
-			c.Sender().Username, c.Sender().FirstName, c.Sender().LastName, c.Sender().ID,
-		)
-
 		oldRole := c.Update().ChatMember.OldChatMember.Role
 		newRole := c.Update().ChatMember.NewChatMember.Role
 		isMemberOld := c.Update().ChatMember.OldChatMember.Member
@@ -29,11 +24,13 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 		conditionRight := (newRole == tele.Member) || (newRole == tele.Restricted) && isMemberNew
 
 		if !(conditionLeft && conditionRight) {
-			log.Println("No new user joined, skip")
 			return nil
 		}
 
-		log.Println("New user joined")
+		log.Println(
+			"New user joined",
+			userJoined.Username, userJoined.FirstName, userJoined.LastName, userJoined.ID,
+		)
 
 		member, err := c.Bot().ChatMemberOf(chat, userJoined)
 		log.Printf(
