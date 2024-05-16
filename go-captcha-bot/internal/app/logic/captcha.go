@@ -120,25 +120,28 @@ func (service *CaptchaService) ProcessButton(member *tele.ChatMember, chat *tele
 	return data, nil
 }
 
-func (service *CaptchaService) banCountdown(ctx context.Context, user *tele.ChatMember, chat *tele.Chat, timeout time.Duration) {
-	log.Printf("Run ban countdown for userID: %d\n", user.User.ID)
+func (service *CaptchaService) banCountdown(ctx context.Context, member *tele.ChatMember, chat *tele.Chat, timeout time.Duration) {
+	log.Printf("Run ban countdown for userID: %d\n", member.User.ID)
 	select {
 	case <-ctx.Done():
 		log.Println("Shutdown countdown due to ctx signal")
 		return
 	case <-time.After(timeout * time.Second):
-		log.Printf("Check countdown for user=%d", user.User.ID)
-		userID := user.User.ID
+		log.Printf("Captcha timeout for user=%d", member.User.ID)
+		userID := member.User.ID
 		userData, err := service.Storage.GetUserData(userID, chat.ID)
 		if err != nil {
 			log.Printf("Get state error: %s\n", err)
 			return
 		}
 		if userData.State == Check {
-			log.Printf("Ban user %d", user.User.ID)
-			service.Bot.Ban(chat, user, true)
+			log.Printf("Ban user %d", member.User.ID)
+			service.Bot.Ban(chat, member, true)
 		}
 		service.Storage.Remove(userID, chat.ID)
+		if err := service.FlushCaptcha(member.User, chat, userData.CaptchaMessages); err != nil {
+			log.Println("Flush captcha error", err)
+		}
 	}
 }
 
@@ -160,6 +163,7 @@ func (service *CaptchaService) SaveMessages(user *tele.User, chat *tele.Chat, me
 }
 
 func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, messages []*tele.Message) error {
+	log.Println("Clean captcha")
 	data, err := service.Storage.GetUserData(user.ID, chat.ID)
 	if err != nil {
 		if !errors.Is(err, ErrStateNotFound) {
@@ -169,7 +173,9 @@ func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, me
 	}
 
 	for _, msg := range data.CaptchaMessages {
-		service.Bot.Delete(msg)
+		if err := service.Bot.Delete(msg); err != nil {
+			log.Println("Couldn't delete message")
+		}
 	}
 
 	return nil
