@@ -31,8 +31,8 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 			return nil
 		}
 
-		log.Println(
-			"New user joined",
+		log.Printf(
+			"New user joined username=%s, firstLastName=%s %s, userID=%d\n",
 			userJoined.Username, userJoined.FirstName, userJoined.LastName, userJoined.ID,
 		)
 

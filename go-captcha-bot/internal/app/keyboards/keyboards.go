@@ -19,15 +19,19 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 	handler := func(button logic.ButtonEvent) func(c tele.Context) error {
 		return func(c tele.Context) error {
 			chat := c.Chat()
-			user, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
+			member, err := c.Bot().ChatMemberOf(chat, c.Update().Callback.Sender)
 			if err != nil {
 				log.Printf("Get chat member error: %s", err)
 				return err
 			}
+			user := member.User
 
-			userData, err := captchaService.ProcessButton(user, chat, button)
+			userData, err := captchaService.ProcessButton(member, chat, button)
 			if err != nil {
-				log.Printf("Process captcha button, userID: %d, error: %s", user.User.ID, err)
+				log.Printf(
+					"Process captcha button, name=%s %s, userID=%d, error: %s",
+					user.FirstName, user.LastName, user.LastName, user.ID, err,
+				)
 				return nil
 			}
 

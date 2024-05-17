@@ -180,7 +180,7 @@ func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, me
 
 	for _, msg := range data.CaptchaMessages {
 		if err := service.Bot.Delete(msg); err != nil {
-			log.Println("Couldn't delete message")
+			log.Println("Delete message err", err)
 		}
 	}
 
