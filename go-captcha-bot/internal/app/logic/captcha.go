@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	tele "gopkg.in/telebot.v3"
@@ -138,10 +139,10 @@ func (service *CaptchaService) banCountdown(ctx context.Context, member *tele.Ch
 			log.Printf("Ban user %d", member.User.ID)
 			service.Bot.Ban(chat, member, true)
 		}
-		service.Storage.Remove(userID, chat.ID)
 		if err := service.FlushCaptcha(member.User, chat, userData.CaptchaMessages); err != nil {
 			log.Println("Flush captcha error", err)
 		}
+		service.Storage.Remove(userID, chat.ID)
 	}
 }
 
@@ -154,7 +155,12 @@ func (service *CaptchaService) SaveMessages(user *tele.User, chat *tele.Chat, me
 		return nil, err
 	}
 
-	data.CaptchaMessages = append(data.CaptchaMessages, messages...)
+	messageStubs := make([]MessageStub, 2)
+	for _, m := range messages {
+		messageStubs = append(messageStubs, MessageStub{chatID: m.Chat.ID, messageID: strconv.Itoa(m.ID)})
+	}
+
+	data.CaptchaMessages = append(data.CaptchaMessages, messageStubs...)
 	if err := service.Storage.Put(data); err != nil {
 		log.Println("Can't save user data", err)
 		return nil, err
@@ -162,7 +168,7 @@ func (service *CaptchaService) SaveMessages(user *tele.User, chat *tele.Chat, me
 	return data, nil
 }
 
-func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, messages []*tele.Message) error {
+func (service *CaptchaService) FlushCaptcha(user *tele.User, chat *tele.Chat, messages []MessageStub) error {
 	log.Println("Clean captcha")
 	data, err := service.Storage.GetUserData(user.ID, chat.ID)
 	if err != nil {
