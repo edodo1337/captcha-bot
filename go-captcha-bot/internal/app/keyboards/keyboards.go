@@ -37,7 +37,6 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 			}
 
 			if userData.State == logic.Approved {
-				c.Bot().Delete(c.Message())
 				return nil
 			}
 
