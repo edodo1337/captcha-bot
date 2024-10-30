@@ -3,25 +3,40 @@ package handlers
 import (
 	"captcha-bot/internal/app/keyboards"
 	"captcha-bot/internal/app/logic"
-	"context"
 	"fmt"
+
+	"context"
 	"log"
 
 	tele "gopkg.in/telebot.v3"
 )
 
-func ShowCaptcha(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
+func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		chat := c.Chat()
-		member, err := c.Bot().ChatMemberOf(chat, c.Message().Sender)
+		if c.Update().ChatMember == nil {
+			return nil
+		}
+
+		userJoined := c.Update().ChatMember.NewChatMember.User
+		oldRole := c.Update().ChatMember.OldChatMember.Role
+		newRole := c.Update().ChatMember.NewChatMember.Role
+		isMemberOld := c.Update().ChatMember.OldChatMember.Member
+		isMemberNew := c.Update().ChatMember.NewChatMember.Member
+
+		conditionLeft := (oldRole == tele.Left) || (oldRole == tele.Kicked) || (oldRole == tele.Restricted) && (!isMemberOld)
+		conditionRight := (newRole == tele.Member) || (newRole == tele.Restricted) && isMemberNew
+
+		if !(conditionLeft && conditionRight) {
+			return nil
+		}
+
 		log.Printf(
-			"User joined name=%s %s, username=%s, user_id=%d\n",
-			member.User.FirstName,
-			member.User.LastName,
-			member.User.Username,
-			member.User.ID,
+			"New user joined username=%s, firstLastName=%s %s, userID=%d\n",
+			userJoined.Username, userJoined.FirstName, userJoined.LastName, userJoined.ID,
 		)
 
+		member, err := c.Bot().ChatMemberOf(chat, userJoined)
 		if err != nil {
 			log.Println("ChatMemberOf error", err)
 			return err
@@ -46,7 +61,22 @@ func ShowCaptcha(ctx context.Context, captchaService *logic.CaptchaService) tele
 			captchaService.Config.Bot.BanTimeout,
 		)
 
-		c.Reply(msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
+		log.Println("Reply captcha message")
+		msgHello := fmt.Sprintf("Добро пожаловать, [%s %s](tg://user?id=%d)!", userJoined.FirstName, userJoined.LastName, userJoined.ID)
+		msg1, err := c.Bot().Send(c.Chat(), msgHello, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
+		if err != nil {
+			log.Println("Send hello msg err", err)
+		}
+
+		msg2, err := c.Bot().Send(c.Chat(), msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown, ReplyMarkup: &keyboard})
+		if err != nil {
+			log.Println("Send captcha err", err)
+		}
+
+		_, err = captchaService.SaveMessages(userJoined, c.Chat(), []*tele.Message{msg1, msg2})
+		if err != nil {
+			log.Println("Save messages err", err)
+		}
 
 		return nil
 	}
@@ -118,8 +148,6 @@ func VoteKick(ctx context.Context, pollService *logic.PollService) tele.HandlerF
 func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterService) tele.HandlerFunc {
 	return func(c tele.Context) error {
 		result := spamFilterService.CheckMessage(ctx, c.Message().Text)
-		fmt.Println(c.Message().Text, result)
-
 		var response string
 		if result {
 			response = "Это спам"
@@ -127,6 +155,20 @@ func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterServic
 			response = "Это не спам"
 		}
 		c.Reply(response)
+
+		return nil
+	}
+}
+
+func TailLogs(ctx context.Context, adminService *logic.AdminService) tele.HandlerFunc {
+	return func(c tele.Context) error {
+		msg, err := adminService.TailLogs(ctx, *c.Message())
+		if err != nil {
+			c.Reply(err)
+			return err
+		} else {
+			c.Reply(msg)
+		}
 
 		return nil
 	}

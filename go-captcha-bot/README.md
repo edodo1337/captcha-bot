@@ -25,3 +25,6 @@ bot:
 > captcha_message: текст капчи
 > vote_kick_timeout: (секунды) таймаут для голосования 
 > min_kick_votes_for: минимальное число голосов "За" чтобы кикнуть
+> gemini_api_token - API токен для Google Gemini
+> prompt_wrap - текст-обертка, для запросов к Gemini
+> admins (массив строк) - whitelist админов

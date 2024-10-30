@@ -6,11 +6,13 @@ import (
 )
 
 type UserData struct {
-	CurrentPos int
-	CorrectPos int
-	State      UserState
-	Expiration int64
-	UserID     int64
+	CurrentPos      int
+	CorrectPos      int
+	State           UserState
+	Expiration      int64
+	UserID          int64
+	ChatID          int64
+	CaptchaMessages []MessageStub
 }
 
 func (item *UserData) Expired() bool {
@@ -35,6 +37,15 @@ func (item *PollData) Expired() bool {
 		return false
 	}
 	return time.Now().UnixNano() > item.Expiration
+}
+
+type MessageStub struct {
+	chatID    int64
+	messageID string
+}
+
+func (m MessageStub) MessageSig() (messageID string, chatID int64) {
+	return m.messageID, int64(m.chatID)
 }
 
 // func NewPollData(authorUserID, userToKickID, pollMsgID int64) (*PollData, error) {
