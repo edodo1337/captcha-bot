@@ -11,6 +11,7 @@ type KickFailedReason int8
 const (
 	Default UserState = iota
 	Check
+	CaptchaPassed
 	Approved
 	Ban
 	Left              ButtonEvent      = -1

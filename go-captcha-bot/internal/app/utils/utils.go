@@ -11,11 +11,24 @@ import (
 
 	h "captcha-bot/internal/app/handlers"
 
+	"github.com/redis/go-redis/v9"
 	tele "gopkg.in/telebot.v3"
 )
 
 func RunPolling(ctx context.Context, config *conf.Config) error {
-	userRepo := storage.NewUserInMemoryRepo(config.Bot.UserStateTTL, config.Bot.CleanupInterval)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     config.Bot.Redis.Url,
+		Password: config.Bot.Redis.Password,
+		DB:       config.Bot.Redis.Db,
+	})
+
+	status := redisClient.Ping(ctx)
+	if _, err := status.Result(); err != nil {
+		log.Println("Redis connection error: ", err)
+		return err
+	}
+
+	userRepo := storage.NewUserRedisRepo(config.Bot.UserStateTTL, redisClient)
 	pollRepo := storage.NewPollInMemoryRepo(config.Bot.VoteKickTimeout, config.Bot.CleanupInterval)
 
 	poller := &tele.LongPoller{Timeout: 1 * time.Second, AllowedUpdates: []string{
@@ -74,7 +87,12 @@ func RunPolling(ctx context.Context, config *conf.Config) error {
 		return err
 	}
 
-	registerHandlers(ctx, captchaService, pollService, adminService)
+	spamFilterService, err := logic.NewSpamFilterService(userRepo, bot, config)
+	if err != nil {
+		return err
+	}
+
+	registerHandlers(ctx, captchaService, pollService, adminService, spamFilterService)
 	captchaService.Run()
 
 	return nil
@@ -85,9 +103,11 @@ func registerHandlers(
 	captchaService *logic.CaptchaService,
 	pollService *logic.PollService,
 	adminService *logic.AdminService,
+	spamFilterService *logic.SpamFilterService,
 ) {
 	captchaService.Bot.Handle(tele.OnAddedToGroup, h.ShowCaptchaJoined(ctx, captchaService))
 	captchaService.Bot.Handle(tele.OnChatMember, h.ShowCaptchaJoined(ctx, captchaService))
+	captchaService.Bot.Handle(tele.OnText, h.OnNewMessage(ctx, spamFilterService))
 
 	captchaService.Bot.Handle("/votekick", h.VoteKick(ctx, pollService))
 	captchaService.Bot.Handle("/hello", func(c tele.Context) error {

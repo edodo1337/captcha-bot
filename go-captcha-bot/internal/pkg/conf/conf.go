@@ -11,17 +11,23 @@ import (
 // App config
 type Config struct {
 	Bot struct {
-		Token           string        `yaml:"token"`
-		BanTimeout      int           `yaml:"ban_timeout" default:"120"`
-		CaptchaMsg      string        `yaml:"captcha_message"`
-		UserStateTTL    time.Duration `yaml:"user_state_ttl" default:"300"`
-		CleanupInterval time.Duration `yaml:"cleanup_interval" default:"120"`
-		MinKickVotesFor uint          `yaml:"min_kick_votes_for" default:"3"`
-		VoteKickTimeout time.Duration `yaml:"vote_kick_timeout" default:"120"`
-		GeminiApiToken  string        `yaml:"gemini_api_token"`
-		GeminiModel     string        `yaml:"gemini_model" default:"gemini-pro"`
-		PromptWrap      string        `yaml:"prompt_wrap"`
-		Admins          []string      `yaml:"admins"`
+		Token             string        `yaml:"token"`
+		BanTimeout        int           `yaml:"ban_timeout" default:"120"`
+		CaptchaMsg        string        `yaml:"captcha_message"`
+		UserStateTTL      time.Duration `yaml:"user_state_ttl" default:"300"`
+		CleanupInterval   time.Duration `yaml:"cleanup_interval" default:"120"`
+		MinKickVotesFor   uint          `yaml:"min_kick_votes_for" default:"3"`
+		VoteKickTimeout   time.Duration `yaml:"vote_kick_timeout" default:"120"`
+		GeminiApiTokens   []string      `yaml:"gemini_api_tokens"`
+		GeminiModel       string        `yaml:"gemini_model" default:"gemini-pro"`
+		PromptWrap        string        `yaml:"prompt_wrap"`
+		Admins            []string      `yaml:"admins"`
+		MsgCountThreshold int           `yaml:"msg_count_threshold" default:"5"`
+		Redis             struct {
+			Url      string `yaml:"redis_url"`
+			Password string `yaml:"redis_password"`
+			Db       int    `yaml:"redis_db" default:"0"`
+		} `yaml:"redis"`
 	} `yaml:"bot"`
 	Logger struct {
 		LogFile string `yaml:"log_file" default:"bot.log"`

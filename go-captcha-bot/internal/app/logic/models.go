@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 )
@@ -13,12 +14,15 @@ type UserData struct {
 	UserID          int64
 	ChatID          int64
 	CaptchaMessages []MessageStub
+	Messages        []MessageStub
+	JoinedAt        time.Time
 }
 
 func (item *UserData) Expired() bool {
 	if item.Expiration == 0 {
 		return false
 	}
+
 	return time.Now().UnixNano() > item.Expiration
 }
 
@@ -40,29 +44,27 @@ func (item *PollData) Expired() bool {
 }
 
 type MessageStub struct {
-	chatID    int64
-	messageID string
+	ChatID    int64
+	MessageID string
 }
 
 func (m MessageStub) MessageSig() (messageID string, chatID int64) {
-	return m.messageID, int64(m.chatID)
+	return m.MessageID, int64(m.ChatID)
 }
 
-// func NewPollData(authorUserID, userToKickID, pollMsgID int64) (*PollData, error) {
-// 	if authorUserID <= 0 {
-// 		return nil, errors.New(fmt.Sprintf("incorrect authorUserID: %s recieved", authorUserID))
-// 	}
-// 	if userToKickID <= 0 {
-// 		return nil, errors.New(fmt.Sprintf("incorrect userToKickID: %s recieved", userToKickID))
-// 	}
-// 	if pollMsgID <= 0 {
-// 		return nil, errors.New(fmt.Sprintf("incorrect pollMsgID: %s recieved", pollMsgID))
-// 	}
+func UnmarshalUserData(data []byte) (*UserData, error) {
+	var userData UserData
+	err := json.Unmarshal(data, &userData)
+	if err != nil {
+		return nil, err
+	}
+	return &userData, nil
+}
 
-// 	return &PollData{
-// 		authorUserID: authorUserID,
-// 		userToKickID: userToKickID,
-// 		userVotedMap: sync.Map{},
-// 		pollMsgID:    pollMsgID,
-// 	}, nil
-// }
+func MarshalUserData(userData *UserData) ([]byte, error) {
+	data, err := json.Marshal(userData)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}

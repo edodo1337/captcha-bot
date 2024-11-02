@@ -60,11 +60,6 @@ func (st *PollInMemoryRepo) GetByUserID(userID int64) (*logic.PollData, error) {
 		return nil, errors.New("poll data decode error")
 	}
 
-	// if pollData.Expired() {
-	// 	st.m.Delete(userID)
-	// 	return nil, logic.ErrPollNotFound
-	// }
-
 	return pollData, nil
 }
 

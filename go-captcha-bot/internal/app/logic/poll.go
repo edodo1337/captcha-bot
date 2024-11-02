@@ -119,8 +119,10 @@ func (service *PollService) pollCountdown(
 
 			msg := VoteKickMsgSucess(userToKick)
 			service.Bot.Edit(pollMsg, msg, &tele.SendOptions{ParseMode: tele.ModeMarkdown})
-			service.Bot.Ban(chat, memberToKick, true)
-			service.Storage.Remove(memberToKickUserID)
+
+			if err := service.Bot.Ban(chat, memberToKick, true); err != nil {
+				log.Printf("Ban user error: %s\n", err)
+			}
 		}
 	}
 }

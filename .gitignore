@@ -2,3 +2,4 @@
 .venv
 *.__pyc__*
 *__pycache__*
+**/config.yaml

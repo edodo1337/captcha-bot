@@ -1,7 +1,6 @@
 package clients
 
 import (
-	"captcha-bot/internal/pkg/conf"
 	"context"
 	"errors"
 	"fmt"
@@ -13,23 +12,23 @@ import (
 )
 
 type GeminiClient struct {
-	client *genai.Client
-	config *conf.Config
-	model  *genai.GenerativeModel
+	client     *genai.Client
+	model      *genai.GenerativeModel
+	promptWrap string
 }
 
-func NewGeminiClient(ctx context.Context, config *conf.Config) *GeminiClient {
-	geminiClient, err := genai.NewClient(ctx, option.WithAPIKey(config.Bot.GeminiApiToken))
+func NewGeminiClient(ctx context.Context, token string, modelType string, promptWrap string) *GeminiClient {
+	geminiClient, err := genai.NewClient(ctx, option.WithAPIKey(token))
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
-	model := geminiClient.GenerativeModel(config.Bot.GeminiModel)
+	model := geminiClient.GenerativeModel(modelType)
 
 	return &GeminiClient{
-		config: config,
-		client: geminiClient,
-		model:  model,
+		client:     geminiClient,
+		model:      model,
+		promptWrap: promptWrap,
 	}
 }
 
@@ -39,7 +38,7 @@ func (c *GeminiClient) Shutdown() error {
 
 func (c *GeminiClient) IsSpam(ctx context.Context, text string) (bool, error) {
 	var b strings.Builder
-	b.WriteString(c.config.Bot.PromptWrap)
+	b.WriteString(c.promptWrap)
 	b.WriteString(text)
 	promptText := b.String()
 
@@ -49,12 +48,12 @@ func (c *GeminiClient) IsSpam(ctx context.Context, text string) (bool, error) {
 	}
 
 	if len(resp.Candidates) < 1 {
-		return false, errors.New("Empty response candidates")
+		return false, errors.New("empty response candidates")
 	}
 	candidate := resp.Candidates[0]
 
 	if len(candidate.Content.Parts) < 1 {
-		return false, errors.New("Empty candidate parts")
+		return false, errors.New("empty candidate parts")
 	}
 	responseText := fmt.Sprint(candidate.Content.Parts[0])
 	switch responseText {
@@ -63,6 +62,6 @@ func (c *GeminiClient) IsSpam(ctx context.Context, text string) (bool, error) {
 	case "0":
 		return false, nil
 	default:
-		return false, errors.New("Unexpected response")
+		return false, fmt.Errorf("unexpected response: %s", responseText)
 	}
 }

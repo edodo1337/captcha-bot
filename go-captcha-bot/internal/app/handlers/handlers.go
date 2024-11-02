@@ -51,7 +51,7 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 		if err != nil {
 			log.Printf("Init captcha error: %s", err)
 		}
-		keyboard := keyboards.SliderCaptchaKeyboard(captchaService)
+		keyboard := keyboards.SliderCaptchaKeyboard(ctx, captchaService)
 
 		msg := logic.CaptchaMessage(
 			logic.CaptchaLength,
@@ -73,7 +73,7 @@ func ShowCaptchaJoined(ctx context.Context, captchaService *logic.CaptchaService
 			log.Println("Send captcha err", err)
 		}
 
-		_, err = captchaService.SaveMessages(userJoined, c.Chat(), []*tele.Message{msg1, msg2})
+		_, err = captchaService.SaveMessages(ctx, userJoined, c.Chat(), []*tele.Message{msg1, msg2})
 		if err != nil {
 			log.Println("Save messages err", err)
 		}
@@ -145,16 +145,36 @@ func VoteKick(ctx context.Context, pollService *logic.PollService) tele.HandlerF
 	}
 }
 
-func OnNewMessage(ctx context.Context, spamFilterService *logic.SpamFilterService) tele.HandlerFunc {
+func OnNewMessage(ctx context.Context, service *logic.SpamFilterService) tele.HandlerFunc {
 	return func(c tele.Context) error {
-		result := spamFilterService.CheckMessage(ctx, c.Message().Text)
-		var response string
-		if result {
-			response = "Это спам"
-		} else {
-			response = "Это не спам"
+
+		approved, err := service.CheckAlreadyApproved(ctx, c.Message())
+		if err != nil {
+			log.Println("Check if user approved error", err)
+			return err
 		}
-		c.Reply(response)
+
+		if approved {
+			log.Printf("User %d already approved", c.Message().Sender.ID)
+			return nil
+		}
+
+		log.Printf("User %d not approved, check if message is spam", c.Message().Sender.ID)
+
+		isSpam, err := service.CheckMessage(ctx, c.Message().Text)
+		if err != nil {
+			log.Println("Check message error", err)
+			return nil
+		}
+
+		if isSpam {
+			log.Printf("User %d is spammer", c.Message().Sender.ID)
+			msg := fmt.Sprintf("Пользователь [%s %s](tg://user?id=%d) забанен за спам", c.Message().Sender.FirstName, c.Message().Sender.LastName, c.Message().Sender.ID)
+			service.Bot.Reply(c.Message(), msg, &tele.SendOptions{ReplyTo: c.Message()})
+			if err := service.BanAndFlushMessages(ctx, c.Message().Sender, c.Chat()); err != nil {
+				log.Println("Ban and flush messages error", err)
+			}
+		}
 
 		return nil
 	}

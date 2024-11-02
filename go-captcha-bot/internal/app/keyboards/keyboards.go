@@ -2,13 +2,14 @@ package keyboards
 
 import (
 	"captcha-bot/internal/app/logic"
+	"context"
 	"fmt"
 	"log"
 
 	tele "gopkg.in/telebot.v3"
 )
 
-func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarkup {
+func SliderCaptchaKeyboard(ctx context.Context, captchaService *logic.CaptchaService) tele.ReplyMarkup {
 	var keyboard = tele.ReplyMarkup{ResizeKeyboard: true}
 	btnLeft := keyboard.Data("⬅️", "leftBtn")
 	btnRight := keyboard.Data("➡️", "rightBtn")
@@ -26,7 +27,7 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 			}
 			user := member.User
 
-			userData, err := captchaService.ProcessButton(member, chat, button)
+			userData, err := captchaService.ProcessButton(ctx, member, chat, button)
 			if err != nil {
 				log.Printf(
 					"Process captcha button, name=%s %s, userID=%d, error: %s",
@@ -40,7 +41,7 @@ func SliderCaptchaKeyboard(captchaService *logic.CaptchaService) tele.ReplyMarku
 				return nil
 			}
 
-			if userData.State == logic.Approved {
+			if userData.State == logic.CaptchaPassed {
 				return nil
 			}
 

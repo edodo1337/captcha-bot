@@ -1,0 +1,23 @@
+bot:
+  token: tg_token
+  ban_timeout: 120
+  captcha_message: Помоги жабе съесть яблоко
+  user_state_ttl: 300
+  cleanup_interval: 120
+  vote_kick_timeout: 10
+  min_kick_votes_for: 1
+  gemini_api_tokens: 
+    - token1
+    - token2
+  prompt_wrap: |
+                  You are a spam detection bot for a group chat, designed to handle diverse and informal messages. Analyze the provided message specifically for signs of spam, such as unsolicited promotions, repeated advertising, or suspicious links.
+                  Ignore typos, greetings, casual language, or friendly chat that might appear in a group setting.
+                  Respond ONLY with "1" for confirmed spam or "0" for non-spam, without any extra text or explanation.
+                  This is the message: "
+  admins:
+    - wakawakawakawak
+    - MasterKot
+
+logger:
+  log_file: bot.log
+
