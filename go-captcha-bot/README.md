@@ -29,6 +29,3 @@ bot:
 > prompt_wrap - текст-обертка, для запросов к Gemini
 > admins (массив строк) - whitelist админов
 
-# curl -X POST https://api.telegram.org/bot6505512754:AAH1o0v3Wkb76o0uPMR-qx5D_GWLgqURC_0/getUpdates \
-#     -H 'Content-Type: application/json' \
-#     -d '{"allowed_updates": ["chat_member"]}'
