@@ -176,6 +176,7 @@ func OnNewMessage(ctx context.Context, service *logic.SpamFilterService) tele.Ha
 			}
 		}
 
+		log.Println("Message is not spam")
 		return nil
 	}
 }
