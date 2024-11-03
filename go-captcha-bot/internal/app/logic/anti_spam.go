@@ -73,7 +73,10 @@ func (sfs *SpamFilterService) CheckMessage(ctx context.Context, text string) (bo
 	if err != nil {
 		return false, err
 	}
-	spamFilterClient.Shutdown()
+	if err := spamFilterClient.Shutdown(); err != nil {
+		log.Println("Can't shutdown spam filter client", err)
+		return false, err
+	}
 
 	return isSpam, nil
 }
