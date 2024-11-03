@@ -1,6 +1,8 @@
 package conf
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -23,15 +25,25 @@ type Config struct {
 		PromptWrap        string        `yaml:"prompt_wrap"`
 		Admins            []string      `yaml:"admins"`
 		MsgCountThreshold int           `yaml:"msg_count_threshold" default:"5"`
-		Redis             struct {
-			Url      string `yaml:"redis_url"`
-			Password string `yaml:"redis_password"`
-			Db       int    `yaml:"redis_db" default:"0"`
-		} `yaml:"redis"`
 	} `yaml:"bot"`
+	Redis struct {
+		Url      string `yaml:"url"`
+		Password string `yaml:"password"`
+		Db       int    `yaml:"db" default:"0"`
+	} `yaml:"redis"`
 	Logger struct {
 		LogFile string `yaml:"log_file" default:"bot.log"`
 	}
+}
+
+func (c *Config) Validate() error {
+	if c.Redis.Url == "" {
+		return errors.New("redis_url should not be empty")
+	}
+	if len(c.Bot.GeminiApiTokens) == 0 {
+		return errors.New("gemini_api_tokens should not be empty")
+	}
+	return nil
 }
 
 func New() *Config {
@@ -52,6 +64,10 @@ func New() *Config {
 
 	if err := defaults.Set(&cfg); err != nil {
 		panic(err)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		panic(fmt.Sprintf("App configuration error: %s", err))
 	}
 
 	return &cfg

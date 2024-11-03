@@ -17,9 +17,9 @@ import (
 
 func RunPolling(ctx context.Context, config *conf.Config) error {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.Bot.Redis.Url,
-		Password: config.Bot.Redis.Password,
-		DB:       config.Bot.Redis.Db,
+		Addr:     config.Redis.Url,
+		Password: config.Redis.Password,
+		DB:       config.Redis.Db,
 	})
 
 	status := redisClient.Ping(ctx)

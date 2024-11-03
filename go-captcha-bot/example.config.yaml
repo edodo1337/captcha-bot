@@ -18,6 +18,10 @@ bot:
     - wakawakawakawak
     - MasterKot
 
+redis:
+  url: redis:6379
+  db: 0
+
 logger:
   log_file: bot.log
 
