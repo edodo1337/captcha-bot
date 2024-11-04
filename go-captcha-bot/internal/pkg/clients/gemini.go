@@ -20,7 +20,7 @@ type GeminiClient struct {
 func NewGeminiClient(ctx context.Context, token string, modelType string, promptWrap string) *GeminiClient {
 	geminiClient, err := genai.NewClient(ctx, option.WithAPIKey(token))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil
 	}
 	model := geminiClient.GenerativeModel(modelType)
@@ -44,7 +44,8 @@ func (c *GeminiClient) IsSpam(ctx context.Context, text string) (bool, error) {
 
 	resp, err := c.model.StartChat().SendMessage(ctx, genai.Text(promptText))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err, resp)
+		return false, err
 	}
 
 	if len(resp.Candidates) < 1 {
