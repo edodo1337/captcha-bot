@@ -147,7 +147,6 @@ func VoteKick(ctx context.Context, pollService *logic.PollService) tele.HandlerF
 
 func OnNewMessage(ctx context.Context, service *logic.SpamFilterService) tele.HandlerFunc {
 	return func(c tele.Context) error {
-
 		approved, err := service.CheckAlreadyApproved(ctx, c.Message())
 		if err != nil {
 			log.Println("Check if user approved error", err)

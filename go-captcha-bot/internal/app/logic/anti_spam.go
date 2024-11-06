@@ -13,7 +13,6 @@ import (
 )
 
 type SpamFilterClient interface {
-	// Init(ctx context.Context, cofig *conf.Config) error
 	Shutdown() error
 	IsSpam(ctx context.Context, text string) (bool, error)
 }
@@ -25,6 +24,7 @@ type SpamFilterService struct {
 }
 
 func NewSpamFilterService(userRepo UserRepository, bot *tele.Bot, config *conf.Config) (*SpamFilterService, error) {
+	log.Printf("Creating SpamFilterService with GPT client %s\n", config.Bot.GPTClient)
 	return &SpamFilterService{
 		UserStorage: userRepo,
 		Bot:         bot,
@@ -34,10 +34,16 @@ func NewSpamFilterService(userRepo UserRepository, bot *tele.Bot, config *conf.C
 
 func (sfs *SpamFilterService) GetSpamFilterClient(ctx context.Context) SpamFilterClient {
 	l := len(sfs.Config.Bot.GeminiApiTokens)
-	randPos := rand.Intn(l)
-	geminiClient := clients.NewGeminiClient(ctx, sfs.Config.Bot.GeminiApiTokens[randPos], sfs.Config.Bot.GeminiModel, sfs.Config.Bot.PromptWrap)
+	tokenPos := rand.Intn(l)
 
-	return geminiClient
+	switch sfs.Config.Bot.GPTClient {
+	case "gemini":
+		return clients.NewGeminiClient(ctx, sfs.Config.Bot.GeminiApiTokens[tokenPos], sfs.Config.Bot.GeminiModel, sfs.Config.Bot.PromptWrap)
+	case "yandexgpt":
+		return clients.NewYandexGPTClient(ctx, sfs.Config.Bot.PromptWrap, sfs.Config.Bot.YandexCatalogIDs[tokenPos], sfs.Config.Bot.YandexApiTokens[tokenPos])
+	default:
+		panic("Unknown GPT client")
+	}
 }
 
 func (sfs *SpamFilterService) CheckAlreadyApproved(ctx context.Context, msg *tele.Message) (bool, error) {

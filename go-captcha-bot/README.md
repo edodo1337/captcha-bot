@@ -20,12 +20,16 @@ bot:
 `$ sudo docker run --env-file .env captcha-bot`
 
 ### Переменные конфигурации
-> ban_timeout - (секунды) таймаут на ответ (по умолчанию 120)
-> token - API токен бота из @BotFather
-> captcha_message: текст капчи
-> vote_kick_timeout: (секунды) таймаут для голосования 
-> min_kick_votes_for: минимальное число голосов "За" чтобы кикнуть
-> gemini_api_token - API токен для Google Gemini
-> prompt_wrap - текст-обертка, для запросов к Gemini
-> admins (массив строк) - whitelist админов
-
+> token - API токен Telegram.
+> ban_timeout - Таймаут для ответа (сек).
+> captcha_message - Сообщение капчи.
+> user_state_ttl - TTL состояния пользователя (сек).
+> cleanup_interval - Интервал очистки (сек).
+> vote_kick_timeout - Таймаут голосования (сек).
+> min_kick_votes_for - Минимум голосов "за" кик.
+> gemini_api_tokens - Токены API Google Gemini.
+> yandex_api_tokens - Токены API Yandex.
+> yandex_catalog_ids - Каталоги Yandex.
+> gpt_client - Клиент GPT.
+> prompt_wrap - Шаблон запроса для LLM.
+> admins - Администраторы (массив).

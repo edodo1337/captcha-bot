@@ -9,6 +9,13 @@ bot:
   gemini_api_tokens: 
     - token1
     - token2
+  yandex_api_tokens:
+    - token1
+    - token2
+  yandex_catalog_ids:
+    - catalog_id1
+    - catalog_id2
+  gpt_client: yandexgpt
   prompt_wrap: |
                   You are a spam detection bot for a group chat, designed to handle diverse and informal messages. Analyze the provided message specifically for signs of spam, such as unsolicited promotions, repeated advertising, or suspicious links.
                   Ignore typos, greetings, casual language, or friendly chat that might appear in a group setting.

@@ -24,7 +24,6 @@ func NewGeminiClient(ctx context.Context, token string, modelType string, prompt
 		return nil
 	}
 	model := geminiClient.GenerativeModel(modelType)
-
 	return &GeminiClient{
 		client:     geminiClient,
 		model:      model,
